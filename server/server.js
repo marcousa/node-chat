@@ -1,18 +1,27 @@
-const path = require('path');
+const path = require('path'); //built-in node module
+const http = require('http'); //built-in node module
 const express = require('express');
-var app = express();
+const socketIO = require('socket.io');
+
 
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000
+var app = express();
+var server = http.createServer(app);
+var io = socketIO(server);
 
 app.use(express.static(publicPath));
 
-// ROUTES //
+io.on('connection', (socket) => {
+    console.log('New user connected');
 
-app.get('/', (req, res) => {
-    res.render('index');
+    socket.on('disconnect', () => {
+        console.log('User has disconnected');
+    })
 });
 
-app.listen(port, () => {
+// ROUTES //
+
+server.listen(port, () => {
     console.log(`Server started on port ${port}`);
 });
