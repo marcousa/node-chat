@@ -8,11 +8,14 @@ function scrollToBottom() {
     clientHeight = messages.clientHeight;
     scrollTop = messages.scrollTop;
     scrollHeight = messages.scrollHeight;
+    // height is stored as a property in the style object
     newMessageStyle = window.getComputedStyle(newMessage, null);
     newMessageHeightString = newMessageStyle.getPropertyValue('height');
+    // transform height value into a number since height is stored as a string with 'px' at the end
     newMessageHeight = Number(newMessageHeightString.substring(0, newMessageHeightString.length - 2));
     lastMessage = newMessage.previousSibling;
     condition = undefined;
+    // there is no lastMessage when the screen first loads, causing a crash
     if(!lastMessage) {
         condition = clientHeight + scrollTop + newMessageHeight
     } else {
