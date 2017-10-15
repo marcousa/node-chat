@@ -1,5 +1,32 @@
 var socket = io();
 
+function scrollToBottom() {
+    //Selectors
+    messages = document.getElementById('messages');
+    newMessage = messages.lastChild;
+    //Heights
+    clientHeight = messages.clientHeight;
+    scrollTop = messages.scrollTop;
+    scrollHeight = messages.scrollHeight;
+    newMessageStyle = window.getComputedStyle(newMessage, null);
+    newMessageHeightString = newMessageStyle.getPropertyValue('height');
+    newMessageHeight = Number(newMessageHeightString.substring(0, newMessageHeightString.length - 2));
+    lastMessage = newMessage.previousSibling;
+    condition = undefined;
+    if(!lastMessage) {
+        condition = clientHeight + scrollTop + newMessageHeight
+    } else {
+        lastMessageStyle = window.getComputedStyle(lastMessage, null);
+        lastMessageHeightString = lastMessageStyle.getPropertyValue('height');
+        lastMessageHeight = Number(lastMessageHeightString.substring(0, lastMessageHeightString.length - 2));
+        condition = clientHeight + scrollTop + newMessageHeight + lastMessageHeight
+    }
+    
+    if(condition >= scrollHeight) {
+        messages.scrollTo(0, scrollHeight);
+    }
+}
+
 let messageBox = document.getElementsByName('message')[0];
 
 socket.on('connect', function() {
@@ -20,8 +47,10 @@ socket.on('newMessage', function(message) {
     });
 
     let newLi = document.createElement('li');
+    newLi.setAttribute('class', 'message');
     newLi.innerHTML = html;
     document.getElementById('messages').appendChild(newLi);
+    scrollToBottom();
 });
 
 socket.on('newLocationMessage', function(message) {
@@ -37,6 +66,7 @@ socket.on('newLocationMessage', function(message) {
     let newLi = document.createElement('li');
     newLi.innerHTML = html;
     messageDisplay.appendChild(newLi);
+    scrollToBottom();
 });
 
 var form = document.getElementById("message-form");
