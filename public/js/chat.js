@@ -2,27 +2,27 @@ var socket = io();
 
 function scrollToBottom() {
     //Selectors
-    messages = document.getElementById('messages');
-    newMessage = messages.lastChild;
+    let messages = document.getElementById('messages');
+    let newMessage = messages.lastChild;
     //Heights
-    clientHeight = messages.clientHeight;
-    scrollTop = messages.scrollTop;
-    scrollHeight = messages.scrollHeight;
+    let clientHeight = messages.clientHeight;
+    let scrollTop = messages.scrollTop;
+    let scrollHeight = messages.scrollHeight;
     // height is stored as a property in the style object
-    newMessageStyle = window.getComputedStyle(newMessage, null);
-    newMessageHeightString = newMessageStyle.getPropertyValue('height');
+    let newMessageStyle = window.getComputedStyle(newMessage, null);
+    let newMessageHeightString = newMessageStyle.getPropertyValue('height');
     // transform height value into a number since height is stored as a string with 'px' at the end
-    newMessageHeight = Number(newMessageHeightString.substring(0, newMessageHeightString.length - 2));
-    lastMessage = newMessage.previousSibling;
-    condition = undefined;
+    let newMessageHeight = Number(newMessageHeightString.substring(0, newMessageHeightString.length - 2));
+    let lastMessage = newMessage.previousSibling;
+    let condition = undefined;
     // there is no lastMessage when the screen first loads, causing a crash
     if(!lastMessage) {
-        condition = clientHeight + scrollTop + newMessageHeight
+        condition = clientHeight + scrollTop + newMessageHeight;
     } else {
-        lastMessageStyle = window.getComputedStyle(lastMessage, null);
-        lastMessageHeightString = lastMessageStyle.getPropertyValue('height');
-        lastMessageHeight = Number(lastMessageHeightString.substring(0, lastMessageHeightString.length - 2));
-        condition = clientHeight + scrollTop + newMessageHeight + lastMessageHeight
+        let lastMessageStyle = window.getComputedStyle(lastMessage, null);
+        let lastMessageHeightString = lastMessageStyle.getPropertyValue('height');
+        let lastMessageHeight = Number(lastMessageHeightString.substring(0, lastMessageHeightString.length - 2));
+        condition = clientHeight + scrollTop + newMessageHeight + lastMessageHeight;
     }
     
     if(condition >= scrollHeight) {
@@ -33,11 +33,33 @@ function scrollToBottom() {
 let messageBox = document.getElementsByName('message')[0];
 
 socket.on('connect', function() {
-    console.log('Connected to server');
+    var params = deparam(window.location.search);
+    
+    socket.emit('join', params, function(err) {
+        if(err) {
+            alert(err);
+            return window.location.href = '/';
+        }
+        console.log('No error');
+    });
 });
 
 socket.on('disconnect', function() {
     console.log('Disconnected from server');
+});
+
+socket.on('updateUserList', function(users) {
+    var usersDiv = document.createElement('div');
+    var ol = document.createElement('ol');
+    usersDiv.appendChild(ol);
+
+    users.forEach(function(user) {
+        var newLi = document.createElement('li');
+        newLi.textContent = user;
+        ol.appendChild(newLi);
+    });
+
+    document.getElementById('users').innerHTML = usersDiv.innerHTML;
 });
 
 socket.on('newMessage', function(message) {
@@ -67,6 +89,7 @@ socket.on('newLocationMessage', function(message) {
     
     let messageDisplay = document.getElementById('messages');
     let newLi = document.createElement('li');
+    newLi.setAttribute('class', 'message');
     newLi.innerHTML = html;
     messageDisplay.appendChild(newLi);
     scrollToBottom();
@@ -80,7 +103,6 @@ form.addEventListener('submit', function(e) {
     let messageBox = document.getElementsByName("message")[0];
 
     socket.emit('createMessage', {
-        from: 'User',
         text: messageBox.value
     }, function() {
         messageBox.value = '';
